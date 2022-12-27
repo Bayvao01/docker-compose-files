@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  configserver:
+    image: bayvao/configuration-service:latest
+    mem_limit: 700m
+    ports:
+      - "8888:8888"
+    networks:
+      - serviceconnection
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 180s
+    environment:
+      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/Bayvao01/common_dev_config_properties
+
+
+  user_service:
+    image: bayvao/user-service:latest
+    mem_limit: 700m
+    ports:
+      - "8080:8080"
+    expose:
+      - 3306
+    networks:
+      - serviceconnection
+    depends_on:
+      - configserver
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      SPRING_CLOUD_CONFIG_NAME: user-service-config, user-service-error, base-config
+      SPRING_CLOUD_CONFIG_URI: http://configserver:8888
+
+
+networks:
+  serviceconnection:
